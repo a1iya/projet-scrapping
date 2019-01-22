@@ -1,16 +1,20 @@
 class Scrapper
 
+    #la fonction retourne le tableau contenant la liste des villes avec leurs adresses mail correspondantes
   def get_townhall_mails
     townhall_mails = []
-    i = 0
+    #on récupère le contenu de la page avec Nokogiri
     page = Nokogiri::HTML(open("http://www.annuaire-des-mairies.com/val-d-oise.html"))
+    #on récupère tous les liens (eng: anchors) directement sous un paragraphe n'importe où dans la page (//)
     page.xpath('//p/a').each do |url|
+      #appel de la fonction récupérant l'adresse mail  d'une mairie à partir de l'url relative contenue dans le lien
       mail = get_townhall_email("http://www.annuaire-des-mairies.com/"+url['href'][1..-1])
+      #on ajoute à notre tableau un hash composé du nom de la ville et de son mail
       townhall_mails << { url.text.downcase => mail }
-      i += 1
     end
   end
-    
+  
+  #la fonction retourne le tableau contenant la liste des villes avec l'url de leur page détaillée
   def get_townhall_urls
     urls = []
     page = Nokogiri::HTML(open("http://www.annuaire-des-mairies.com/val-d-oise.html"))
@@ -19,20 +23,27 @@ class Scrapper
     end
     return urls
   end
-    
+
+  #la fonction retourne l'adresse mail contenue dans la page dont l'url est passée en paramètre
   def get_townhall_email(townhall_url)
-    begin
+   #tout un code qui est susceptible de générer une exception
+   begin
       page = Nokogiri::HTML(open(townhall_url))
       #page.encoding = 'utf-8'
       unless page.xpath('//body').text.downcase.include?('adresse email')
           return ''
       end
       page.xpath('//td').each do |td|
+        #on vérifie que le contenu de la cellule (td) contient bien une adresse mail et pas autre chose : entre les crochets - tous les caractères possibles)
+        #[A-Z]{2,4} = tout caractère entre A et Z au minimum 2 fois, au maximum 4 fois +
+        # //i = non sensible à la casse (A = a)
         match = td.text.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}/i)
         if(match)
+          #on prend que le 1r élément (pour ne pas avoir plusieurs adresses mail qui ont "matché"
           return match[0]
         end
       end
+    #si jamais on n'arrive pas à joindre la page/s'il y a des erreurs, on passe dans la rescue
     rescue StandardError => e
       return ''
     end
@@ -42,10 +53,8 @@ class Scrapper
   def big_array    
     towns = get_townhall_urls    
     a = []
-    i=0
     towns.each do |town|
       a << { town.keys[0] => get_townhall_email(town.values[0]) }
-      i += 1
     end
     return a
   end
