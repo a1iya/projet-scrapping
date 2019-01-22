@@ -1,10 +1,3 @@
-require 'rubygems'
-require 'nokogiri'
-require 'open-uri'
-require 'rubygems'
-require 'json'
-require 'google_drive'
-
 class Scrapper
 
   def get_townhall_mails
