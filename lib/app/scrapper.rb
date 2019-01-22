@@ -110,8 +110,8 @@ class Scrapper
   def save_as_csv   
     i = 1
     towns = get_townhall_urls
-    CSV.open("db/email.csv", "wb") do |f|
-      towns.each do |town|  
+    CSV.open("db/emails.csv", "wb") do |f|
+      towns.each do |town|
         f << [i,town.keys[0],get_townhall_email(town.values[0])]
         i += 1       
       end
